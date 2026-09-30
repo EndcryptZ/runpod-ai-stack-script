@@ -11,28 +11,33 @@ if ! command -v aria2c >/dev/null 2>&1; then
     || echo "aria2 install failed, falling back to wget"
 fi
 
-# Download helper: uses aria2c if available, otherwise wget. Resumes partial downloads.
+# Download helper: multi-connection aria2c, no pre-allocation (fast on network disks), resumable.
 dl() {
   local url="$1" dir="$2" file
   file=$(basename "$url")
   mkdir -p "$dir"
   if command -v aria2c >/dev/null 2>&1; then
-    aria2c -x 16 -s 16 -c --console-log-level=warn -d "$dir" -o "$file" "$url"
+    aria2c -x 16 -s 16 -k 1M --file-allocation=none -c \
+      --summary-interval=10 --console-log-level=warn \
+      -d "$dir" -o "$file" "$url"
   else
     wget -c -O "$dir/$file" "$url"
   fi
 }
 
-# 1. Custom node
+# 1. Custom nodes
 mkdir -p "$COMFY/custom_nodes"
 cd "$COMFY/custom_nodes"
-[ -d ComfyUI-Downloader ] || git clone https://github.com/romandev-codex/ComfyUI-Downloader
-cd ComfyUI-Downloader
-pip install -r requirements.txt
 
-# 2. Models
+[ -d ComfyUI-Downloader ] || git clone https://github.com/romandev-codex/ComfyUI-Downloader
+pip install -r ComfyUI-Downloader/requirements.txt
+
+[ -d rgthree-comfy ] || git clone https://github.com/rgthree/rgthree-comfy
+[ -f rgthree-comfy/requirements.txt ] && pip install -r rgthree-comfy/requirements.txt
+
+# 2. Models (one at a time, each using all 16 connections)
 dl "$BASE/diffusion_models/krea2_turbo_int8_convrot.safetensors" "$COMFY/models/diffusion_models"
 dl "$BASE/text_encoders/qwen3vl_4b_fp8_scaled.safetensors"       "$COMFY/models/text_encoders"
 dl "$BASE/vae/qwen_image_vae.safetensors"                        "$COMFY/models/vae"
 
-echo "Done. Restart ComfyUI to load the new node and models."
+echo "Done. Restart ComfyUI to load the new nodes and models."
