@@ -17,7 +17,7 @@ dl() {
   file=$(basename "$url")
   mkdir -p "$dir"
   if command -v aria2c >/dev/null 2>&1; then
-    aria2c -x 16 -s 16 -k 1M --file-allocation=none -c \
+    aria2c -x 8 -s 8 -k 32M --file-allocation=none -c \
       --summary-interval=10 --console-log-level=warn \
       -d "$dir" -o "$file" "$url"
   else
@@ -35,7 +35,7 @@ pip install -r ComfyUI-Downloader/requirements.txt
 [ -d rgthree-comfy ] || git clone https://github.com/rgthree/rgthree-comfy
 [ -f rgthree-comfy/requirements.txt ] && pip install -r rgthree-comfy/requirements.txt
 
-# 2. Models (one at a time, each using all 16 connections)
+# 2. Models (one at a time, 8 connections, 32MB chunks)
 dl "$BASE/diffusion_models/krea2_turbo_int8_convrot.safetensors" "$COMFY/models/diffusion_models"
 dl "$BASE/text_encoders/qwen3vl_4b_fp8_scaled.safetensors"       "$COMFY/models/text_encoders"
 dl "$BASE/vae/qwen_image_vae.safetensors"                        "$COMFY/models/vae"
