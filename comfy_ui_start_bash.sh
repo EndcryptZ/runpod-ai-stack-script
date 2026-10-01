@@ -25,7 +25,13 @@ dl() {
   fi
 }
 
-# 1. Custom nodes
+# 1. Start all model downloads simultaneously in the background
+pids=()
+dl "$BASE/diffusion_models/krea2_turbo_int8_convrot.safetensors" "$COMFY/models/diffusion_models" & pids+=($!)
+dl "$BASE/text_encoders/qwen3vl_4b_fp8_scaled.safetensors"       "$COMFY/models/text_encoders"    & pids+=($!)
+dl "$BASE/vae/qwen_image_vae.safetensors"                        "$COMFY/models/vae"              & pids+=($!)
+
+# 2. Custom nodes (installed while the models download)
 mkdir -p "$COMFY/custom_nodes"
 cd "$COMFY/custom_nodes"
 
@@ -35,9 +41,9 @@ pip install -r ComfyUI-Downloader/requirements.txt
 [ -d rgthree-comfy ] || git clone https://github.com/rgthree/rgthree-comfy
 [ -f rgthree-comfy/requirements.txt ] && pip install -r rgthree-comfy/requirements.txt
 
-# 2. Models (one at a time, 8 connections, 32MB chunks)
-dl "$BASE/diffusion_models/krea2_turbo_int8_convrot.safetensors" "$COMFY/models/diffusion_models"
-dl "$BASE/text_encoders/qwen3vl_4b_fp8_scaled.safetensors"       "$COMFY/models/text_encoders"
-dl "$BASE/vae/qwen_image_vae.safetensors"                        "$COMFY/models/vae"
+# 3. Wait for downloads and report failures
+fail=0
+for pid in "${pids[@]}"; do wait "$pid" || fail=1; done
+[ "$fail" -eq 0 ] || { echo "One or more downloads failed. Re-run the script to resume."; exit 1; }
 
 echo "Done. Restart ComfyUI to load the new nodes and models."
