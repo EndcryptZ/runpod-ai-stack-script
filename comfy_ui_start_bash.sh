@@ -41,6 +41,9 @@ pip install -r ComfyUI-Downloader/requirements.txt
 [ -d rgthree-comfy ] || git clone https://github.com/rgthree/rgthree-comfy
 [ -f rgthree-comfy/requirements.txt ] && pip install -r rgthree-comfy/requirements.txt
 
+[ -d was-node-suite-comfyui ] || git clone https://github.com/WASasquatch/was-node-suite-comfyui
+[ -f was-node-suite-comfyui/requirements.txt ] && pip install -r was-node-suite-comfyui/requirements.txt
+
 # 3. Wait for downloads and report failures
 fail=0
 for pid in "${pids[@]}"; do wait "$pid" || fail=1; done
