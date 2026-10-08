@@ -117,6 +117,9 @@ pip install -r ComfyUI-Downloader/requirements.txt
 [ -d ComfyUI-Detail-Daemon ] || git clone https://github.com/Jonseed/ComfyUI-Detail-Daemon
 [ -f ComfyUI-Detail-Daemon/requirements.txt ] && pip install -r ComfyUI-Detail-Daemon/requirements.txt
 
+[ -d ComfyUI-RMBG ] || git clone https://github.com/1038lab/ComfyUI-RMBG
+[ -f ComfyUI-RMBG/requirements.txt ] && pip install -r ComfyUI-RMBG/requirements.txt
+
 # 3. Wait for downloads and report failures
 fail=0
 for pid in "${pids[@]}"; do wait "$pid" || fail=1; done
